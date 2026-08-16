@@ -31,3 +31,10 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Keys and Secrets
+serviceAccountKey.json
+*serviceAccount*.json
+*.pem
+*.key
+
