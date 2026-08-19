@@ -1,12 +1,19 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Home from "./pages/Home"
+import TermsOfService from "./pages/TermsOfService"
+import PrivacyPolicy from "./pages/PrivacyPolicy"
+import AppToaster from "./components/common/AppToaster"
 
 const App = () => {
   return (
-    <div className='w-full h-screen bg-black '>
-    <div className="flex justify-center items-center h-full">
-       <button className='text-white cursor-pointer bg-lime-600 px-4 py-2 rounded-md' >Login with Google</button>
-    </div>
-    </div>
+    <BrowserRouter>
+      <AppToaster />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

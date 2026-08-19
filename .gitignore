@@ -32,6 +32,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Skills and Agent Customizations
+.agents
+
 # Keys and Secrets
 serviceAccountKey.json
 *serviceAccount*.json

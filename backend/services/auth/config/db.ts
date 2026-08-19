@@ -6,7 +6,9 @@ const connectDB = async (): Promise<void> => {
       throw new Error("MONGO_URI is not defined");
     }
 
-    const connection = await mongoose.connect(process.env.MONGO_URI);
+    const connection = await mongoose.connect(process.env.MONGO_URI, {
+      dbName: "multiagent",
+    });
     console.log(`MongoDB is connected: ${connection.connection.host}`);
   } catch (error) {
     console.error("Error:", error);

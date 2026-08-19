@@ -26,6 +26,8 @@ tmp/
 dist/
 build/
 
+.agents
+
 # OS / editor files
 .DS_Store
 Thumbs.db
