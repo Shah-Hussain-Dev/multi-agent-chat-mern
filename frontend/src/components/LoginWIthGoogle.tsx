@@ -6,6 +6,8 @@ import { auth, googleProvider } from '../utils/firebase';
 import api from '../utils/axios';
 import showToast from '../utils/toast';
 import Auth3DBackground from './common/Auth3DBackground';
+import { useAppDispatch } from '../redux/store';
+import { setUser } from '../redux/userSlice';
 
 type AuthMode = 'login' | 'register';
 
@@ -13,6 +15,8 @@ const LoginWithGoogle = () => {
     const [mode, setMode] = useState<AuthMode>('login');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const dispatch = useAppDispatch();
 
     // Form inputs state
     const [name, setName] = useState('');
@@ -32,10 +36,12 @@ const LoginWithGoogle = () => {
             const token = await data.user.getIdToken();
             const response = await api.post("/auth/login", { token });
             showToast.success(
-                `Welcome to ${appName}!`, 
+                `Welcome to ${appName}!`,
                 `Successfully signed in as ${data.user.displayName || data.user.email}`
             );
             console.log("Google Login success:", response.data);
+            dispatch(setUser(response.data.data));
+
         } catch (err: any) {
             console.error("Error logging in with Google", err);
             if (err?.code !== 'auth/popup-closed-by-user') {
@@ -62,8 +68,10 @@ const LoginWithGoogle = () => {
         setError(null);
         try {
             const response = await api.post("/auth/login-email", { email, password });
-            showToast.success(`Welcome back!`, `Successfully signed in as ${response.data.user.name || response.data.user.email}`);
+            showToast.success(`Welcome back!`, `Successfully signed in as ${response.data.data.name || response.data.data.email}`);
             console.log("Email Login success:", response.data);
+            dispatch(setUser(response.data.data));
+
         } catch (err: any) {
             console.error("Error in email login:", err);
             const errMsg = err?.response?.data?.message || "Invalid email or password. Please try again.";
@@ -114,12 +122,12 @@ const LoginWithGoogle = () => {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[160px] pointer-events-none" />
 
             {/* Subtle Grid Overlay */}
-            <div 
-                className="fixed inset-0 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none z-0" 
+            <div
+                className="fixed inset-0 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none z-0"
             />
 
             {/* Main Centered Auth Container */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
@@ -144,8 +152,8 @@ const LoginWithGoogle = () => {
                             {appName}
                         </h1>
                         <p className="text-xs text-zinc-400 max-w-xs">
-                            {mode === 'login' 
-                                ? "Sign in to access your swarm control workspace." 
+                            {mode === 'login'
+                                ? "Sign in to access your swarm control workspace."
                                 : "Create your account to deploy autonomous agents."}
                         </p>
                     </div>
@@ -156,22 +164,20 @@ const LoginWithGoogle = () => {
                     <button
                         type="button"
                         onClick={() => { setMode('login'); setError(null); }}
-                        className={`relative z-10 flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
-                            mode === 'login' 
-                                ? 'bg-zinc-800 text-white shadow-md border border-zinc-700/60' 
-                                : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
+                        className={`relative z-10 flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${mode === 'login'
+                            ? 'bg-zinc-800 text-white shadow-md border border-zinc-700/60'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                            }`}
                     >
                         Sign In
                     </button>
                     <button
                         type="button"
                         onClick={() => { setMode('register'); setError(null); }}
-                        className={`relative z-10 flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
-                            mode === 'register' 
-                                ? 'bg-zinc-800 text-white shadow-md border border-zinc-700/60' 
-                                : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
+                        className={`relative z-10 flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${mode === 'register'
+                            ? 'bg-zinc-800 text-white shadow-md border border-zinc-700/60'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                            }`}
                     >
                         Create Account
                     </button>
@@ -179,7 +185,7 @@ const LoginWithGoogle = () => {
 
                 {/* Error Banner */}
                 {error && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -6 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2.5"
@@ -193,13 +199,13 @@ const LoginWithGoogle = () => {
 
                 {/* Animated Form Fields */}
                 <AnimatePresence mode="wait">
-                    <motion.form 
+                    <motion.form
                         key={mode}
                         initial={{ opacity: 0, x: mode === 'login' ? -12 : 12 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: mode === 'login' ? 12 : -12 }}
                         transition={{ duration: 0.2 }}
-                        onSubmit={mode === 'login' ? handleEmailLogin : handleEmailRegister} 
+                        onSubmit={mode === 'login' ? handleEmailLogin : handleEmailRegister}
                         className="space-y-4"
                     >
                         {mode === 'register' && (
@@ -246,13 +252,12 @@ const LoginWithGoogle = () => {
                             <div className="flex items-center justify-between">
                                 <label className="text-xs font-medium text-zinc-300">Password</label>
                                 {mode === 'login' && (
-                                    <button 
-                                        type="button"
-                                        onClick={() => showToast.info("Password Reset", "Contact your administrator or sign in with Google.")} 
+                                    <Link
+                                        to="/forgot-password"
                                         className="text-xs text-emerald-400 hover:underline cursor-pointer"
                                     >
                                         Forgot?
-                                    </button>
+                                    </Link>
                                 )}
                             </div>
                             <div className="relative">

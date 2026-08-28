@@ -149,7 +149,7 @@ export const loginEmail = async (req: Request, res: Response) => {
 
         res.status(200).json({
             success: true,
-            user: userResponse,
+            data: userResponse,
             message: "Login successful",
         });
     } catch (error) {
@@ -248,6 +248,111 @@ export const logout = async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             message: "Internal server error",
+        });
+    }
+};
+
+// Forgot Password - Send verification code
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            res.status(400).json({
+                success: false,
+                message: "Email is required",
+            });
+            return;
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "No account found with this email address",
+            });
+            return;
+        }
+
+        // Generate 6-digit verification code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save reset code in Redis with 15 minutes TTL (900 seconds)
+        await redis.set(`reset-${email.toLowerCase().trim()}`, resetCode, "EX", 900);
+
+        res.status(200).json({
+            success: true,
+            message: "Verification code sent to your email",
+            data: {
+                email,
+                resetCode, // Returned for dev testing & preview
+            },
+        });
+    } catch (error) {
+        console.error("Error in forgotPassword:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to process forgot password request",
+        });
+    }
+};
+
+// Reset Password - Verify code and set new password
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        if (!email || !code || !newPassword) {
+            res.status(400).json({
+                success: false,
+                message: "Email, verification code, and new password are required",
+            });
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            res.status(400).json({
+                success: false,
+                message: "New password must be at least 6 characters long",
+            });
+            return;
+        }
+
+        const formattedEmail = email.toLowerCase().trim();
+        const savedCode = await redis.get(`reset-${formattedEmail}`);
+
+        if (!savedCode || savedCode !== code.trim()) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid or expired verification code",
+            });
+            return;
+        }
+
+        const user = await User.findOne({ email: formattedEmail });
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+            return;
+        }
+
+        // Hash new password & update user
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        // Clear reset code from Redis
+        await redis.del(`reset-${formattedEmail}`);
+
+        res.status(200).json({
+            success: true,
+            message: "Password reset successfully. You can now log in with your new password.",
+        });
+    } catch (error) {
+        console.error("Error in resetPassword:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error during password reset",
         });
     }
 };

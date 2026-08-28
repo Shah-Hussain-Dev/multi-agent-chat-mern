@@ -5,7 +5,7 @@ import ApiResponse from "../../shared/utils/apiResponse.js";
 const getCurrentUser = async (req: Request, res: Response) => {
     try {
         return ApiResponse.success(res, "User fetched successfully", {
-            user: req?.user
+            user: (req as any).user
         });
     } catch (error) {
         console.log("Error in getCurrentUser", error)

@@ -1,0 +1,9 @@
+{
+  "name": "multi-agent-system-mern",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "./run.sh",
+    "start": "./run.sh"
+  }
+}
