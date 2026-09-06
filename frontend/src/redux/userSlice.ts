@@ -1,21 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// 1. Define User & State Types
 export interface User {
     _id: string;
     name: string;
     email: string;
     avatar?: string;
 }
+
 interface UserState {
     user: User | null;
-    isAuthenticated: boolean
+    isAuthenticated: boolean;
 }
+
 const initialState: UserState = {
     user: null,
     isAuthenticated: false
 };
-
 
 const userSlice = createSlice({
     name: "user",
@@ -30,7 +30,8 @@ const userSlice = createSlice({
             state.isAuthenticated = false;
         }
     }
-})
+});
 
 export const { setUser, clearUser } = userSlice.actions;
+export const logout = clearUser;
 export default userSlice.reducer;

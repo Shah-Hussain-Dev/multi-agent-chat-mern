@@ -28,8 +28,6 @@ const ForgotPassword = () => {
     // Countdown for redirect upon success
     const [countdown, setCountdown] = useState(5);
 
-    const appName = import.meta.env.VITE_APP_NAME || "Agentrix";
-
     // Auto-fill from query params if coming via reset link (e.g. /forgot-password?email=...&code=...)
     useEffect(() => {
         const queryEmail = searchParams.get('email');
