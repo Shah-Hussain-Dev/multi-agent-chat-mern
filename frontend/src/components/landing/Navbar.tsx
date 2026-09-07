@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Sparkles, Menu, X, ArrowRight, UserCheck } from 'lucide-react';
-import { useAppSelector } from '../../redux/store';
+import { Bot, Sparkles, Menu, X, ArrowRight, UserCheck, LogOut } from 'lucide-react';
+import { useAppSelector, useAppDispatch } from '../../redux/store';
+import { clearUser } from '../../redux/userSlice';
+import { logoutUser } from '../../features/user';
+import showToast from '../../utils/toast';
 
 export const Navbar: React.FC = () => {
+    const dispatch = useAppDispatch();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isAuthenticated, user } = useAppSelector((state) => state.user);
     const navigate = useNavigate();
     const appName = import.meta.env.VITE_APP_NAME || import.meta.env.APP_NAME || "Agentrix";
+
+    const handleNavbarLogout = async () => {
+        try {
+            await logoutUser();
+        } catch (err) {
+            console.error("Error logging out:", err);
+        }
+        dispatch(clearUser());
+        showToast.success("Signed Out", "Successfully logged out.");
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -34,14 +48,13 @@ export const Navbar: React.FC = () => {
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-                scrolled
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
                     ? 'bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/80 py-3 shadow-2xl shadow-emerald-950/20'
                     : 'bg-transparent py-5'
-            }`}
+                }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-                
+
                 {/* Logo & Status Indicator */}
                 <Link to="/" className="flex items-center gap-3 group">
                     <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-indigo-500 p-[1px] shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
@@ -49,16 +62,13 @@ export const Navbar: React.FC = () => {
                             <Bot className="w-5 h-5 text-emerald-400 group-hover:rotate-12 transition-transform duration-300" />
                         </div>
                     </div>
-                    
+
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <span className="text-xl font-black tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                                 {appName}
                             </span>
-                            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                v2.0 Swarm
-                            </span>
+
                         </div>
                         <span className="text-[10px] text-zinc-400 font-mono hidden md:block">
                             Autonomous Graph Engine
@@ -93,6 +103,13 @@ export const Navbar: React.FC = () => {
                             >
                                 <Sparkles className="w-3.5 h-3.5 text-zinc-950" />
                                 <span>Get Started</span>
+                            </button>
+                            <button
+                                onClick={handleNavbarLogout}
+                                title="Sign Out"
+                                className="p-2 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer border border-zinc-800"
+                            >
+                                <LogOut className="w-4 h-4" />
                             </button>
                         </div>
                     ) : (

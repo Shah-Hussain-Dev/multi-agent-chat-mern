@@ -71,3 +71,28 @@ export const saveChatMessage = async (conversationId: string, role: 'user' | 'as
         return null;
     }
 };
+
+// Delete a conversation thread
+export const deleteConversationApi = async (id: string): Promise<boolean> => {
+    try {
+        const res = await api.delete(`/chat/delete-conversation/${id}`);
+        return res.data?.success || false;
+    } catch (err) {
+        console.error("Error deleting conversation:", err);
+        return false;
+    }
+};
+
+// Send message API
+export const sendMessageApi = async (payload: { prompt: string; conversationId?: string }): Promise<string | null> => {
+    try {
+        const res = await api.post("/agent/chat", payload);
+        if (res.data?.success) {
+            return res.data?.data?.response || res.data?.data || res.data?.response || "AI response received";
+        }
+        return null;
+    } catch (error: any) {
+        console.error("Error in sendMessageApi:", error?.response?.data?.message || error?.message);
+        return null;
+    }
+};

@@ -11,3 +11,11 @@ export const getCurrentUser = async () => {
         return null;
     }
 };
+
+export const logoutUser = async () => {
+    try {
+        await api.get("/auth/logout");
+    } catch (error) {
+        console.log("Error in logoutUser", error);
+    }
+};

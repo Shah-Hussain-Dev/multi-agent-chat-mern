@@ -7,6 +7,7 @@ router.post("/register", registerEmail);
 router.post("/login-email", loginEmail);
 router.post("/login", login);
 router.get("/logout", logout);
+router.post("/logout", logout);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

@@ -11,7 +11,8 @@ app.use(express.json());
 
 connectDB();
 
-app.use("/api", router)
+app.use("/", router);
+app.use("/api", router);
 app.get("/", (_req, res) => {
     res.status(200).json({ message: "Agent service is running" });
 });

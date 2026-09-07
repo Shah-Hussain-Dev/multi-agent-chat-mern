@@ -9,7 +9,8 @@ import {
     Search,
     LogOut,
     Home,
-    Loader2
+    Loader2,
+    Trash2
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { clearUser } from '../../redux/userSlice';
@@ -17,24 +18,20 @@ import showToast from '../../utils/toast';
 import {
     fetchConversations,
     createNewConversation,
+    deleteConversationApi,
     type ConversationItem
 } from '../../features/chat';
-import { setConversations } from '../../redux/conversationSlice';
+import { logoutUser } from '../../features/user';
+import { setConversations, addConversation, setSelectedConversation, deleteConversationFromList } from '../../redux/conversationSlice';
 
 interface SidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
-    activeConversationId?: string | null;
-    onSelectConversation?: (id: string) => void;
-    onNewChat?: (newConv?: ConversationItem) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
     isCollapsed,
-    setIsCollapsed,
-    activeConversationId,
-    onSelectConversation,
-    onNewChat
+    setIsCollapsed
 }) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -45,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isCreating, setIsCreating] = useState<boolean>(false);
-    const { conversations } = useAppSelector((state) => state.conversations);
+    const { conversations, selectedConversation } = useAppSelector((state) => state.conversations);
 
     // Load conversations from API on mount
     const loadConversations = async () => {
@@ -53,8 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         try {
             const data: ConversationItem[] = await fetchConversations();
             dispatch(setConversations(data));
-            if (data.length > 0 && !activeConversationId && onSelectConversation) {
-                onSelectConversation(data[0]._id);
+            if (data.length > 0 && !selectedConversation) {
+                dispatch(setSelectedConversation(data[0]));
             }
         } catch (err) {
             console.error("Error loading conversations in sidebar:", err);
@@ -67,10 +64,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         loadConversations();
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+        } catch (err) {
+            console.error("Error logging out:", err);
+        }
         dispatch(clearUser());
+        dispatch(setConversations([]));
+        dispatch(setSelectedConversation(null));
         showToast.success("Signed Out", "Successfully logged out of your session.");
-        navigate('/auth');
+        navigate('/');
     };
 
     // Handle Create New Conversation via API
@@ -79,14 +83,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         try {
             const newConv: ConversationItem | null = await createNewConversation();
             if (newConv) {
-                dispatch(setConversations([newConv, ...conversations]));
-                if (onSelectConversation) {
-                    onSelectConversation(newConv._id);
-                }
-                if (onNewChat) {
-                    onNewChat(newConv);
-                }
-                showToast.success("New Conversation", "Swarm thread created.");
+                dispatch(addConversation(newConv));
+                dispatch(setSelectedConversation(newConv));
+                showToast.success("New Conversation", "Chat thread created.");
             } else {
                 showToast.error("Error", "Could not create new conversation thread.");
             }
@@ -94,6 +93,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             console.error("Error creating conversation in sidebar:", err);
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    // Handle Delete Conversation via API
+    const handleDeleteConversation = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        try {
+            const success = await deleteConversationApi(id);
+            if (success) {
+                dispatch(deleteConversationFromList(id));
+                showToast.success("Deleted", "Conversation thread deleted.");
+            } else {
+                showToast.error("Error", "Failed to delete conversation.");
+            }
+        } catch (err) {
+            console.error("Error deleting conversation:", err);
+            showToast.error("Error", "An unexpected error occurred.");
         }
     };
 
@@ -199,13 +215,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             </div>
                         ) : (
                             conversations
-                                .filter(t => (t.title || 'Untitled Swarm').toLowerCase().includes(searchQuery.toLowerCase()))
+                                .filter(t => (t.title || 'Untitled Chat').toLowerCase().includes(searchQuery.toLowerCase()))
                                 .map((t) => {
-                                    const isActive = activeConversationId === t._id;
+                                    const isActive = selectedConversation?._id === t._id;
                                     return (
                                         <div
                                             key={t._id}
-                                            onClick={() => onSelectConversation && onSelectConversation(t._id)}
+                                            onClick={() => dispatch(setSelectedConversation(t))}
                                             className={`group relative p-2.5 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-all ${isActive
                                                 ? 'bg-zinc-900 border border-emerald-500/40 text-white shadow-md'
                                                 : 'hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 border border-transparent'
@@ -214,9 +230,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                             <div className="flex items-center gap-2.5 truncate pr-2">
                                                 <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-zinc-500'}`} />
                                                 <div className="truncate font-medium">
-                                                    {t.title || 'Untitled Swarm'}
+                                                    {t.title || 'Untitled Chat'}
                                                 </div>
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => handleDeleteConversation(e, t._id)}
+                                                title="Delete conversation"
+                                                className="p-1 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 opacity-0 group-hover:opacity-100 transition-all cursor-pointer shrink-0"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
                                         </div>
                                     );
                                 })
@@ -228,9 +252,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         {conversations.slice(0, 5).map((t) => (
                             <button
                                 key={t._id}
-                                onClick={() => onSelectConversation && onSelectConversation(t._id)}
-                                title={t.title || 'Untitled Swarm'}
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${activeConversationId === t._id
+                                onClick={() => dispatch(setSelectedConversation(t))}
+                                title={t.title || 'Untitled Chat'}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${selectedConversation?._id === t._id
                                     ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30'
                                     : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
                                     }`}

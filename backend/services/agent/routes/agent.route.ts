@@ -3,5 +3,7 @@ import { agentController } from "../controller/agent.controller.js";
 
 const router = express.Router();
 
-router.post("/ai-chat", agentController)
+router.post("/chat", agentController);
+router.post("/ai-chat", agentController);
+
 export default router

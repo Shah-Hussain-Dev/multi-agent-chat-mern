@@ -95,12 +95,12 @@ export const saveMessage = async (req: Request, res: Response) => {
             conversationId,
             role,
             content
-        })
+        });
 
-        //update last message time
-        // await Conversation.findByIdAndUpdate(conversationId, {
-        //     lastMessage: message._id
-        // })
+        // Update conversation last updated time
+        await Conversation.findByIdAndUpdate(conversationId, {
+            updatedAt: new Date()
+        });
 
         return res.status(200).json({
             success: true,
@@ -130,7 +130,7 @@ export const getAllMessages = async (req: Request, res: Response) => {
         }
         const messages = await Message.find({
             conversationId
-        }).sort({ createdAt: -1 })
+        }).sort({ createdAt: 1 });
         return res.status(200).json({
             success: true,
             message: "Messages fetched successfully",
@@ -142,5 +142,31 @@ export const getAllMessages = async (req: Request, res: Response) => {
             success: false,
             message: `Error fetching messages ${error}`
         })
+    }
+}
+
+export const deleteConversation = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.headers["x-user-id"] as string;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad request. Conversation ID missing"
+            });
+        }
+        await Conversation.findOneAndDelete({ _id: id, userId: userId });
+        await Message.deleteMany({ conversationId: id });
+
+        return res.status(200).json({
+            success: true,
+            message: "Conversation deleted successfully"
+        });
+    } catch (error) {
+        console.log("Error in deleteConversation:", error);
+        return res.status(500).json({
+            success: false,
+            message: `Error deleting conversation ${error}`
+        });
     }
 }

@@ -9,11 +9,11 @@ export const CONFIG = {
     groq_api_key: GROQ_API_KEY,
     groq_config: {
         apiKey: GROQ_API_KEY,
-        model: "qwen/qwen3.6-27b",
+        model: "llama-3.3-70b-versatile",
     },
     google_config: {
         apiKey: GOOGLE_API_KEY,
-        model: "gemini-2.5-flash",
+        model: "gemini-3.6-flash",
     },
     hugging_face_config: {
         apiKey: HUGGINGFACEHUB_API_KEY,

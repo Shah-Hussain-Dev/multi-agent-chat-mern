@@ -6,28 +6,13 @@ import { NODES } from "../utils/const.js";
 
 
 // GROQ LLM Model 
-const groq = new ChatGroq(CONFIG.groq_config)
-// gemini LLM Model
-const gemini = new ChatGoogleGenerativeAI(CONFIG.google_config)
+export const groq = new ChatGroq(CONFIG.groq_config);
+// gemini LLM Model (gemini-3.6-flash)
+export const gemini = new ChatGoogleGenerativeAI(CONFIG.google_config);
 
-export const getModel = (agent: string) => {
+export const getModel = (_agent: string) => {
     try {
-        switch (agent) {
-            case NODES.CHAT:
-                return groq;
-            case NODES.SEARCH:
-                return groq;
-            case NODES.CODING:
-                return gemini;
-            case NODES.IMAGE_GEN:
-                return gemini;
-            case NODES.PDF:
-                return gemini;
-            case NODES.PPT:
-                return gemini;
-            default:
-                return groq;
-        }
+        return gemini;
     } catch (error: any) {
         throw new Error(error.message || "Failed to get model");
     }

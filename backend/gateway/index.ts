@@ -6,6 +6,10 @@ import cookieParse from "cookie-parser";
 import protect from "./middleware/auth.middleware.js";
 import getCurrentUser from "./controllers/user.controller.js";
 import { proxyWithHeader } from "./utils/proxyWithHeader.js";
+
+import morgan from "morgan";
+
+
 dotenv.config({ path: new URL("./.env", import.meta.url).pathname });
 
 const PORT = Number(process.env.PORT) || 8000;
@@ -26,6 +30,7 @@ app.use(
   })
 );
 
+app.use(morgan("dev"))
 app.use(express.json())
 app.use(cookieParse());
 app.use("/api/auth", proxy(process.env.AUTH_SERVICE!));

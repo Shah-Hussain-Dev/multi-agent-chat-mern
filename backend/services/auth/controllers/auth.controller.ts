@@ -11,7 +11,8 @@ const createSession = async (user: any, res: Response) => {
     res.cookie("session_id", sessionID, {
         httpOnly: true,
         secure: false,
-        sameSite: "strict",
+        sameSite: "lax",
+        path: "/",
         maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -232,12 +233,14 @@ export const logout = async (req: Request, res: Response) => {
         res.clearCookie("session_id", {
             httpOnly: true,
             secure: false,
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
         });
         res.clearCookie("session", {
             httpOnly: true,
             secure: false,
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
         });
         res.status(200).json({
             success: true,

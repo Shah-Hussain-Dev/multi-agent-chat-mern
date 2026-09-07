@@ -69,11 +69,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultMode = 'login' }) => 
             const data = await signInWithPopup(auth, googleProvider);
             const token = await data.user.getIdToken();
             const response = await api.post("/auth/login", { token });
+            const userData = response.data?.user || response.data?.data?.user || response.data?.data;
             showToast.success(
                 `Welcome to ${appName}!`,
-                `Successfully signed in as ${data.user.displayName || data.user.email}`
+                `Successfully signed in as ${userData?.name || userData?.email || data.user.displayName}`
             );
-            dispatch(setUser(response.data.data));
+            dispatch(setUser(userData));
             navigate('/chat');
         } catch (err: any) {
             console.error("Error logging in with Google", err);
@@ -101,8 +102,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultMode = 'login' }) => 
         setError(null);
         try {
             const response = await api.post("/auth/login-email", { email, password });
-            showToast.success(`Welcome back!`, `Signed in as ${response.data.data.name || response.data.data.email}`);
-            dispatch(setUser(response.data.data));
+            const userData = response.data?.data?.user || response.data?.user || response.data?.data;
+            showToast.success(`Welcome back!`, `Signed in as ${userData?.name || userData?.email}`);
+            dispatch(setUser(userData));
             navigate('/chat');
         } catch (err: any) {
             console.error("Error in email login:", err);
@@ -131,9 +133,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ defaultMode = 'login' }) => 
         setError(null);
         try {
             const response = await api.post("/auth/register", { name, email, password });
-            showToast.success(`Account Created!`, `Welcome to ${appName}, ${response.data.user.name}!`);
-            if (response.data?.user) {
-                dispatch(setUser(response.data.user));
+            const userData = response.data?.user || response.data?.data?.user || response.data?.data;
+            showToast.success(`Account Created!`, `Welcome to ${appName}, ${userData?.name || name}!`);
+            if (userData) {
+                dispatch(setUser(userData));
             }
             setMode('login');
         } catch (err: any) {

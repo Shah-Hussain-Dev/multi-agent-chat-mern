@@ -70,6 +70,10 @@ export const router = async (state: AgentState): Promise<Partial<AgentState>> =>
         };
 
     } catch (error: any) {
-        throw new Error(error.message || "Failed to route");
+        console.error("Router error, falling back to chat agent:", error?.message);
+        return {
+            ...state,
+            agent: "chat"
+        };
     }
 };

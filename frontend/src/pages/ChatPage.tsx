@@ -14,7 +14,6 @@ export const ChatPage: React.FC = () => {
 
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [showArtifacts, setShowArtifacts] = useState(false);
-    const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -40,21 +39,10 @@ export const ChatPage: React.FC = () => {
             <Sidebar
                 isCollapsed={isSidebarCollapsed}
                 setIsCollapsed={setIsSidebarCollapsed}
-                activeConversationId={activeConversationId}
-                onSelectConversation={(id) => setActiveConversationId(id)}
-                onNewChat={(newConv) => {
-                    if (newConv) {
-                        setActiveConversationId(newConv._id);
-                    } else {
-                        setActiveConversationId(null);
-                    }
-                }}
             />
 
             {/* Main Chat Feed Area with API Message Persistence */}
             <ChatSection
-                activeConversationId={activeConversationId}
-                onConversationCreated={(id) => setActiveConversationId(id)}
                 isSidebarCollapsed={isSidebarCollapsed}
                 onToggleSidebar={() => setIsSidebarCollapsed(prev => !prev)}
                 onToggleArtifacts={() => setShowArtifacts(prev => !prev)}
